@@ -1,0 +1,23 @@
+@app.route('/process', methods=['POST'])
+def post():
+    mail = request.json['email']
+    pwd = request.json['password']
+    note = request.json['notes']
+    if not mail or not pwd or not note:
+        return {"message": "Credentials are required!"}
+    time = datetime.now().strftime("%Y-%M-%D %H:%M:%S")
+    if Tracker.query.filter_by(email=mail).first():
+        return {"message": "User already taken"}
+    new_user = Tracker(email=mail, password=pwd, notes=note, DateTime=time)
+    db.session.add(new_user)
+    db.session.commit()
+    return {"message": "Congratulations!!! Your account has been created successfully"}
+
+
+@app.route('/login', methods=['POST'])
+def login():
+    mail = request.json['email']
+    pwd = request.json['password']
+    trace = Tracker.query.filter_by(email=mail).first()
+    if trace and trace.password == pwd:
+        access_token = create_access_token(identity=trace.id)
